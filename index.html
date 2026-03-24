@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GrabVR Level Downloader</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #0f172a;
+        color: white;
+        text-align: center;
+        padding: 40px;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    input {
+        width: 90%;
+        max-width: 500px;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        margin-bottom: 20px;
+        font-size: 16px;
+    }
+
+    button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
+        background: #22c55e;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #16a34a;
+    }
+
+    #result {
+        margin-top: 20px;
+        word-break: break-all;
+    }
+
+    a {
+        color: #38bdf8;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>GrabVR Level Downloader</h1>
+
+<input id="levelInput" placeholder="Paste GrabVR level link here">
+<br>
+<button onclick="downloadLevel()">Download Level</button>
+
+<div id="result"></div>
+
+<script>
+function downloadLevel() {
+    const input = document.getElementById("levelInput").value.trim();
+
+    if (!input.includes("level=")) {
+        document.getElementById("result").innerText = "Invalid link!";
+        return;
+    }
+
+    try {
+        // Extract part after "level="
+        let levelPart = input.split("level=")[1];
+
+        // Split ID and timestamp
+        let parts = levelPart.split(":");
+
+        let levelId = parts[0];
+        let timestamp = parts[1];
+
+        if (!levelId || !timestamp) {
+            throw "Invalid format";
+        }
+
+        // Build API URL
+        let apiUrl = `https://api.slin.dev/grab/v1/download/${levelId}/${timestamp}/1`;
+
+        // Show link
+        document.getElementById("result").innerHTML =
+            `Download ready:<br><a href="${apiUrl}" target="_blank">${apiUrl}</a>`;
+
+        // Auto download
+        window.open(apiUrl, "_blank");
+
+    } catch (e) {
+        document.getElementById("result").innerText = "Error parsing link!";
+    }
+}
+</script>
+
+</body>
+</html>
