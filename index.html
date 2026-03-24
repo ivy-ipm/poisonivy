@@ -14,10 +14,6 @@
         padding: 40px;
     }
 
-    h1 {
-        margin-bottom: 20px;
-    }
-
     input {
         width: 90%;
         max-width: 500px;
@@ -38,17 +34,8 @@
         cursor: pointer;
     }
 
-    button:hover {
-        background: #16a34a;
-    }
-
-    #result {
+    #status {
         margin-top: 20px;
-        word-break: break-all;
-    }
-
-    a {
-        color: #38bdf8;
     }
 </style>
 </head>
@@ -59,45 +46,56 @@
 
 <input id="levelInput" placeholder="Paste GrabVR level link here">
 <br>
-<button onclick="downloadLevel()">Download Level</button>
+<button onclick="downloadLevel()">Download</button>
 
-<div id="result"></div>
+<div id="status"></div>
 
 <script>
-function downloadLevel() {
+async function downloadLevel() {
     const input = document.getElementById("levelInput").value.trim();
+    const status = document.getElementById("status");
 
     if (!input.includes("level=")) {
-        document.getElementById("result").innerText = "Invalid link!";
+        status.innerText = "Invalid link!";
         return;
     }
 
     try {
-        // Extract part after "level="
+        // Extract level data
         let levelPart = input.split("level=")[1];
+        let [levelId, timestamp] = levelPart.split(":");
 
-        // Split ID and timestamp
-        let parts = levelPart.split(":");
-
-        let levelId = parts[0];
-        let timestamp = parts[1];
-
-        if (!levelId || !timestamp) {
-            throw "Invalid format";
-        }
+        if (!levelId || !timestamp) throw "Bad format";
 
         // Build API URL
         let apiUrl = `https://api.slin.dev/grab/v1/download/${levelId}/${timestamp}/1`;
 
-        // Show link
-        document.getElementById("result").innerHTML =
-            `Download ready:<br><a href="${apiUrl}" target="_blank">${apiUrl}</a>`;
+        status.innerText = "Downloading...";
 
-        // Auto download
-        window.open(apiUrl, "_blank");
+        // Fetch file
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw "Download failed";
+
+        const blob = await response.blob();
+
+        // Create download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+
+        // 👇 filename = timestamp.level
+        a.href = url;
+        a.download = `${timestamp}.level`;
+
+        document.body.appendChild(a);
+        a.click();
+
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        status.innerText = "Downloaded successfully!";
 
     } catch (e) {
-        document.getElementById("result").innerText = "Error parsing link!";
+        status.innerText = "Error downloading level!";
     }
 }
 </script>
